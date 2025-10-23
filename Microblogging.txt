@@ -1,0 +1,284 @@
+MICROBLOGGING 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Microblog</title>
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f7fafc;
+    margin: 0;
+    padding: 0;
+    color: #1a202c;
+  }
+
+  header {
+    background: #0366d6;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-size: 1.5rem;
+  }
+
+  main {
+    width: 90%;
+    max-width: 700px;
+    margin: 20px auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    padding: 20px;
+  }
+
+  h2 {
+    text-align: center;
+    color: #0366d6;
+  }
+
+  .post-form textarea {
+    width: 100%;
+    height: 80px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e0;
+    resize: none;
+  }
+
+  .post-form input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin-top: 10px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e0;
+  }
+
+  .post-form button {
+    background: #0366d6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+
+  .post-form button:hover {
+    background: #024c9e;
+  }
+
+  .post {
+    border-bottom: 1px solid #e2e8f0;
+    padding: 15px 0;
+  }
+
+  .post:last-child {
+    border: none;
+  }
+
+  .post-header {
+    display: flex;
+    justify-content: space-between;
+    color: #4a5568;
+    font-size: 0.9rem;
+  }
+
+  .post-content {
+    margin: 10px 0;
+    font-size: 1.1rem;
+  }
+
+  .post img {
+    width: 100%;
+    border-radius: 8px;
+    margin-top: 10px;
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .actions button {
+    background: none;
+    border: none;
+    color: #0366d6;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .comments {
+    margin-top: 10px;
+    background: #f7fafc;
+    border-radius: 8px;
+    padding: 10px;
+  }
+
+  .comments input {
+    width: 80%;
+    padding: 5px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+  }
+
+  .comments button {
+    background: #0366d6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+
+  .comment {
+    background: white;
+    border-radius: 6px;
+    padding: 5px 8px;
+    margin-top: 6px;
+    border: 1px solid #e2e8f0;
+  }
+
+  #stats {
+    text-align: right;
+    margin-bottom: 10px;
+    color: #4a5568;
+  }
+</style>
+</head>
+<body>
+
+<header>🌐 Mini Microblog</header>
+<main>
+  <h2>Share Your Thoughts</h2>
+
+  <div class="post-form">
+    <input type="text" id="username" placeholder="Enter your name" required>
+    <textarea id="content" placeholder="What's on your mind?"></textarea>
+    <input type="file" id="imageInput" accept="image/*">
+    <button onclick="addPost()">Post</button>
+  </div>
+
+  <div id="stats"></div>
+  <div id="posts"></div>
+</main>
+
+<script>
+  // Default post by Thiru
+  let posts = [
+    {
+      username: "Thiru",
+      content: "Everyday is a good day with positive thoughts.",
+      imageUrl: null,
+      likes: 1200,
+      shares: 250,
+      comments: [],
+      time: new Date().toLocaleString()
+    }
+  ];
+
+  function addPost() {
+    const username = document.getElementById('username').value.trim();
+    const content = document.getElementById('content').value.trim();
+    const imageFile = document.getElementById('imageInput').files[0];
+
+    if (!username || !content) {
+      alert("Please enter your name and content.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const imageUrl = imageFile ? event.target.result : null;
+      const post = {
+        username,
+        content,
+        imageUrl,
+        likes: 0,
+        shares: 0,
+        comments: [],
+        time: new Date().toLocaleString()
+      };
+      posts.unshift(post);
+      document.getElementById('content').value = '';
+      document.getElementById('imageInput').value = '';
+      renderPosts();
+    };
+
+    if (imageFile) reader.readAsDataURL(imageFile);
+    else {
+      const post = {
+        username,
+        content,
+        imageUrl: null,
+        likes: 0,
+        shares: 0,
+        comments: [],
+        time: new Date().toLocaleString()
+      };
+      posts.unshift(post);
+      document.getElementById('content').value = '';
+      renderPosts();
+    }
+  }
+
+  function likePost(index) {
+    posts[index].likes++;
+    renderPosts();
+  }
+
+  function sharePost(index) {
+    posts[index].shares++;
+    alert("Post shared successfully!");
+    renderPosts();
+  }
+
+  function addComment(index) {
+    const input = document.getElementById(`commentInput-${index}`);
+    const text = input.value.trim();
+    if (text) {
+      posts[index].comments.push(text);
+      input.value = '';
+      renderPosts();
+    }
+  }
+
+  function formatCount(n) {
+    if (n >= 1000) return (n / 1000).toFixed(1) + "k";
+    return n;
+  }
+
+  function renderPosts() {
+    const container = document.getElementById('posts');
+    container.innerHTML = '';
+    document.getElementById('stats').innerHTML = `<b>Total Users:</b> ${posts.length}`;
+
+    posts.forEach((post, index) => {
+      const div = document.createElement('div');
+      div.className = 'post';
+      div.innerHTML = `
+        <div class="post-header">
+          <span><b>${post.username}</b></span>
+          <span>${post.time}</span>
+        </div>
+        <div class="post-content">${post.content}</div>
+        ${post.imageUrl ? `<img src="${post.imageUrl}" alt="post image">` : ''}
+        <div class="actions">
+          <button onclick="likePost(${index})">❤️ Like (${formatCount(post.likes)})</button>
+          <button onclick="sharePost(${index})">🔁 Share (${formatCount(post.shares)})</button>
+        </div>
+        <div class="comments">
+          <input type="text" id="commentInput-${index}" placeholder="Add a comment...">
+          <button onclick="addComment(${index})">Post</button>
+          ${post.comments.map(c => `<div class='comment'>${c}</div>`).join('')}
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  renderPosts();
+</script>
+</body>
+</html>
